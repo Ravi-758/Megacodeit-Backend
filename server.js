@@ -13,7 +13,6 @@ app.use(bodyParser.json());
 
 // ✅ Function to handle DB connection & auto-reconnect
 function handleDisconnect() {
-  // 🔍 Debug log for env values
   console.log("🔍 DB Config being used:", {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -59,25 +58,27 @@ app.get("/", (req, res) => {
   res.send("🚀 Backend is running and connected to MySQL!");
 });
 
-// Create User API
-app.post("/api/users", (req, res) => {
-  const { name, email, comments } = req.body;
 
-  if (!name || !email) {
-    return res.status(400).json({ success: false, message: "Name and Email are required" });
+// ✅ Contact Form API
+app.post("/api/contact", (req, res) => {
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ success: false, message: "All fields are required" });
   }
 
   const sql = "INSERT INTO users (name, email, comments, created_at) VALUES (?, ?, ?, NOW())";
-  db.query(sql, [name, email, comments || null], (err, result) => {
+  db.query(sql, [name, email, message], (err, result) => {
     if (err) {
-      console.error("❌ Error inserting user:", err);
+      console.error("❌ Error inserting contact:", err);
       return res.status(500).json({ success: false, message: "Database error" });
     }
-    res.json({ success: true, id: result.insertId, message: "User added successfully" });
+    res.json({ success: true, id: result.insertId, message: "Contact saved successfully" });
   });
 });
 
-// Get Users API
+
+// ✅ Get all contacts/users
 app.get("/api/users", (req, res) => {
   db.query("SELECT * FROM users ORDER BY created_at DESC", (err, results) => {
     if (err) {
@@ -88,7 +89,8 @@ app.get("/api/users", (req, res) => {
   });
 });
 
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
 });
